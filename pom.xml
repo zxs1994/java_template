@@ -11,8 +11,8 @@
         <relativePath/>
     </parent>
 
-    <groupId>work.wendao</groupId>
-    <artifactId>hhcd</artifactId>
+    <groupId>com.example</groupId>
+    <artifactId>template</artifactId>
     <version>1.0.0</version>
 
     <properties>
@@ -43,12 +43,6 @@
             <artifactId>lombok</artifactId>
             <version>1.18.30</version>
             <scope>provided</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>commons-codec</groupId>
-            <artifactId>commons-codec</artifactId>
-            <version>1.15</version>
         </dependency>
 
         <dependency>
