@@ -149,5 +149,3 @@ curl -X GET http://localhost:8088/user
 请在项目中补充 LICENSE（例如 MIT / Apache-2.0），根据你的需求选择合适的许可证。
 
 ---
-
-*需要我把 README 翻译为英文或为 CI/CD、Docker 等添加示例吗？*
