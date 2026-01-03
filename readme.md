@@ -71,6 +71,9 @@ java -Duser.timezone=Asia/Shanghai -jar target/template-1.0.0.jar --spring.profi
 java -Duser.timezone=Asia/Shanghai -Xms512m -Xmx1g -jar target/template-1.0.0.jar --spring.profiles.active=prod
 ```
 
+> 注意：仓库中的 `deploy.sh` 已在启动命令中设置 `-Duser.timezone=Asia/Shanghai`，确保代码中使用的 `OffsetDateTime.now()` 在运行时得到预期的时区偏移。
+
+
 ### 配置
 - 默认激活 profile：`application.properties` 中 `spring.profiles.active=dev`  
 - 开发环境数据库配置：`src/main/resources/application-dev.properties`（示例已指向 `jdbc:mysql://127.0.0.1:3306/demo?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai&useSSL=false`）
@@ -123,12 +126,12 @@ curl -X GET http://localhost:8088/user
 
 ## 开发注意事项 & 约定 ⚠️
 
-- `BaseEntity` 使用 `OffsetDateTime` 存储 `createdAt` / `updatedAt`，已在 `MyMetaObjectHandler` 中使用 `OffsetDateTime.now(ZoneOffset.ofHours(8))` 以写入带 +08:00 的时间。  
+- `BaseEntity` 使用 `OffsetDateTime` 存储 `createdAt` / `updatedAt`。为保持代码简洁，`MyMetaObjectHandler` 使用 `OffsetDateTime.now()`（运行时依赖 JVM 时区设置），请确保在部署时设置 JVM 时区（如 `-Duser.timezone=Asia/Shanghai` 或使用 `deploy.sh`）。  
 - Jackson 已设置 `spring.jackson.time-zone=Asia/Shanghai` 与 `spring.jackson.serialization.write-dates-as-timestamps=false`，确保时间按 ISO 字符串序列化并按东八区解析（尽管 `OffsetDateTime` 自带偏移信息）。  
 - Mapper 扫描配置基于 `project.base-package`（位于 `application.properties`）。  
 - 推荐开启 Lombok 支持（项目已使用）。  
 
-> 建议：仍可在 JVM 启动参数中设置 `-Duser.timezone=Asia/Shanghai` 以保障第三方库的一致性。
+> 建议：在生产环境仍然显式设置 `-Duser.timezone=Asia/Shanghai` 以保障第三方库的一致性，并在变更时添加相应说明。
 
 ---
 
