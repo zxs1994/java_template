@@ -65,13 +65,11 @@ java -jar target/template-1.0.0.jar
 - 生产运行示例（带 JVM 时区参数，见 `deploy.sh`）：
 ```bash
 # 最简单启动（示例）
-java -Duser.timezone=Asia/Shanghai -jar target/template-1.0.0.jar --spring.profiles.active=prod
+java -jar target/template-1.0.0.jar --spring.profiles.active=prod
 
 # 带示例 JVM 内存配置（可选）
-java -Duser.timezone=Asia/Shanghai -Xms512m -Xmx1g -jar target/template-1.0.0.jar --spring.profiles.active=prod
+java -Xms512m -Xmx1g -jar target/template-1.0.0.jar --spring.profiles.active=prod
 ```
-
-> 注意：仓库中的 `deploy.sh` 已在启动命令中设置 `-Duser.timezone=Asia/Shanghai`，确保代码中使用的 `OffsetDateTime.now()` 在运行时得到预期的时区偏移。
 
 
 ### 配置
@@ -126,12 +124,9 @@ curl -X GET http://localhost:8088/user
 
 ## 开发注意事项 & 约定 ⚠️
 
-- `BaseEntity` 使用 `OffsetDateTime` 存储 `createdAt` / `updatedAt`。为保持代码简洁，`MyMetaObjectHandler` 使用 `OffsetDateTime.now()`（运行时依赖 JVM 时区设置），请确保在部署时设置 JVM 时区（如 `-Duser.timezone=Asia/Shanghai` 或使用 `deploy.sh`）。  
-- Jackson 已设置 `spring.jackson.time-zone=Asia/Shanghai` 与 `spring.jackson.serialization.write-dates-as-timestamps=false`，确保时间按 ISO 字符串序列化并按东八区解析（尽管 `OffsetDateTime` 自带偏移信息）。  
-- Mapper 扫描配置基于 `project.base-package`（位于 `application.properties`）。  
-- 推荐开启 Lombok 支持（项目已使用）。  
+- `BaseEntity` 使用 `OffsetDateTime` 存储 `createdAt` / `updatedAt`。项目中提供了 `TimeProvider`（`src/main/java/com/example/template/util/TimeProvider.java`），其 `now()` 返回 `OffsetDateTime.now(ZoneOffset.ofHours(8))`（即固定 `+08:00`），并在 `MyMetaObjectHandler` 中用于自动填充（`createdAt` / `updatedAt`）。
 
-> 建议：在生产环境仍然显式设置 `-Duser.timezone=Asia/Shanghai` 以保障第三方库的一致性，并在变更时添加相应说明。
+- `spring.jackson.time-zone=Asia/Shanghai` 与 `spring.jackson.serialization.write-dates-as-timestamps=false`：对于 `OffsetDateTime` 来说序列化会带偏移，但该配置仍推荐保留，以保证 `LocalDateTime` / `Instant` 的序列化行为一致且对客户端友好。
 
 ---
 

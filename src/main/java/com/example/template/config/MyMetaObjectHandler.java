@@ -1,6 +1,8 @@
 package com.example.template.config;
 
 import com.baomidou.mybatisplus.core.handlers.MetaObjectHandler;
+import com.example.template.util.TimeProvider;
+
 import org.apache.ibatis.reflection.MetaObject;
 import org.springframework.stereotype.Component;
 
@@ -11,7 +13,7 @@ public class MyMetaObjectHandler implements MetaObjectHandler {
 
     @Override
     public void insertFill(MetaObject metaObject) {
-        OffsetDateTime now = OffsetDateTime.now();
+        OffsetDateTime now = TimeProvider.now();
         // 无论是否传值，都覆盖
         this.setFieldValByName("createdAt", now, metaObject);
         this.setFieldValByName("updatedAt", now, metaObject);
@@ -25,7 +27,7 @@ public class MyMetaObjectHandler implements MetaObjectHandler {
 
     @Override
     public void updateFill(MetaObject metaObject) {
-        OffsetDateTime now = OffsetDateTime.now();
+        OffsetDateTime now = TimeProvider.now();
         // 无论是否传值，都覆盖
         this.setFieldValByName("updatedAt", now, metaObject);
     }
