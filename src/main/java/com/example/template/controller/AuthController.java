@@ -1,6 +1,5 @@
 package com.example.template.controller;
 
-import com.example.template.common.NoApiWrap;
 import com.example.template.dto.LoginRequest;
 import com.example.template.dto.LoginResponse;
 import com.example.template.service.IUserService;

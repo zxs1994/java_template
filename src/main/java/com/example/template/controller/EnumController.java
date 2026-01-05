@@ -1,6 +1,5 @@
 package com.example.template.controller;
 
-import com.example.template.common.NoApiWrap;
 import com.example.template.util.LoadProperties;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.GetMapping;
