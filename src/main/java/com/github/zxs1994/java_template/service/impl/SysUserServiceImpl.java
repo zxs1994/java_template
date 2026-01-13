@@ -1,6 +1,7 @@
 package com.github.zxs1994.java_template.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.github.zxs1994.java_template.common.BizException;
 import com.github.zxs1994.java_template.dto.LoginRequest;
 import com.github.zxs1994.java_template.dto.LoginResponse;
@@ -29,6 +30,7 @@ public class SysUserServiceImpl extends SystemProtectService<SysUserMapper, SysU
     private final JwtUtils jwtUtils;
 
     public LoginResponse login(LoginRequest req) {
+        System.out.println(req.toString());
         QueryWrapper<SysUser> wrapper = new QueryWrapper<>();
         wrapper.eq("email", req.getEmail());
         SysUser sysUser = getOne(wrapper, false);
@@ -37,12 +39,14 @@ public class SysUserServiceImpl extends SystemProtectService<SysUserMapper, SysU
             throw new BizException(400, "邮箱或密码错误");
         }
         // 登录成功后
-        SysUser newUser = new SysUser();
-        newUser.setId(sysUser.getId());
-        newUser.setTokenVersion(sysUser.getTokenVersion() + 1);
-        updateById(newUser);
 
-        String token = jwtUtils.generateToken(newUser);
+        // 1️⃣ tokenVersion 自增（数据库）
+        increaseTokenVersion(sysUser.getId());
+        // 2️⃣ 内存同步
+        sysUser.setTokenVersion(sysUser.getTokenVersion() + 1);
+        // 3️⃣ 生成 token
+        String token = jwtUtils.generateToken(sysUser);
+
         LoginResponse res = new LoginResponse();
         res.setToken(token);
         return res;
@@ -62,9 +66,12 @@ public class SysUserServiceImpl extends SystemProtectService<SysUserMapper, SysU
     @Override
     public boolean updateById(SysUser sysUser) {
         sysUser.setPassword(null);
+        String email = sysUser.getEmail();
         // 1️⃣ 校验 email
-        validateEmail(sysUser.getEmail());
-        checkEmailDuplicate(sysUser.getEmail(), sysUser.getId());
+        if (email != null) {
+            validateEmail(sysUser.getEmail());
+            checkEmailDuplicate(email, sysUser.getId());
+        }
 
         // 如果密码不为空，才加密更新
         if (sysUser.getPassword() != null && !sysUser.getPassword().isBlank()) {
@@ -74,7 +81,7 @@ public class SysUserServiceImpl extends SystemProtectService<SysUserMapper, SysU
             sysUser.setPassword(null); // 保持原密码
         }
 
-        return super.save(sysUser);
+        return super.updateById(sysUser);
     }
 
 
@@ -104,5 +111,14 @@ public class SysUserServiceImpl extends SystemProtectService<SysUserMapper, SysU
         if (password.length() < 6) {
             throw new BizException(400, "密码长度不能少于6位");
         }
+    }
+
+    public void increaseTokenVersion(Long userId) {
+        baseMapper.update(
+                null,
+                new UpdateWrapper<SysUser>()
+                        .eq("id", userId)
+                        .setSql("token_version = token_version + 1")
+        );
     }
 }

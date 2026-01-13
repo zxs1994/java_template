@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.annotation.*;
 import lombok.Data;
 import io.swagger.v3.oas.annotations.media.Schema;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.EqualsAndHashCode;
 import com.github.zxs1994.java_template.common.BaseEntity;
 
@@ -13,7 +14,7 @@ import com.github.zxs1994.java_template.common.BaseEntity;
  * </p>
  *
  * @author xusheng
- * @since 2026-01-11 16:46:23
+ * @since 2026-01-13 12:27:23
  */
 
 @Data
@@ -43,7 +44,7 @@ public class SysPermission extends BaseEntity {
     @Schema(description = "访问级别：0权限校验 1白名单")
     private Integer authLevel;
 
-    @Schema(description = "父权限ID")
+    @Schema(description = "父权限ID", example = "8088")
     private Long parentId;
 
     @Schema(description = "排序")

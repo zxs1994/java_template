@@ -1,7 +1,6 @@
 package com.github.zxs1994.java_template.config.myBatisPlus;
 
 import com.baomidou.mybatisplus.core.handlers.MetaObjectHandler;
-import com.github.zxs1994.java_template.util.TimeProvider;
 
 import org.apache.ibatis.reflection.MetaObject;
 import org.springframework.stereotype.Component;
@@ -13,21 +12,20 @@ public class MyMetaObjectHandler implements MetaObjectHandler {
 
     @Override
     public void insertFill(MetaObject metaObject) {
-        OffsetDateTime now = TimeProvider.now();
+        OffsetDateTime now = OffsetDateTime.now();
         // 无论是否传值，都覆盖
         this.setFieldValByName("createdAt", now, metaObject);
         this.setFieldValByName("updatedAt", now, metaObject);
         this.setFieldValByName("deleted", false, metaObject);
 
-        // 强制覆盖 id 为 null
-        if (metaObject.hasGetter("id")) {
-            metaObject.setValue("id", null); // ⚡ 强制覆盖
+        if (metaObject.hasGetter("id") && metaObject.getValue("id") != null) {
+            System.out.println("插入具有预设 ID 的实体, id= " + metaObject.getValue("id"));
         }
     }
 
     @Override
     public void updateFill(MetaObject metaObject) {
-        OffsetDateTime now = TimeProvider.now();
+        OffsetDateTime now = OffsetDateTime.now();
         // 无论是否传值，都覆盖
         this.setFieldValByName("updatedAt", now, metaObject);
     }

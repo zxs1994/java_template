@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.annotation.*;
 import lombok.Data;
 import io.swagger.v3.oas.annotations.media.Schema;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.EqualsAndHashCode;
 import com.github.zxs1994.java_template.common.BaseEntity;
 
@@ -13,7 +14,7 @@ import com.github.zxs1994.java_template.common.BaseEntity;
  * </p>
  *
  * @author xusheng
- * @since 2026-01-11 16:46:23
+ * @since 2026-01-13 12:27:23
  */
 
 @Data
@@ -22,12 +23,13 @@ import com.github.zxs1994.java_template.common.BaseEntity;
 @Schema(description = "系统--用户-角色关联表")
 public class SysUserRole extends BaseEntity {
 
-    @Schema(description = "用户ID")
+    @Schema(description = "用户ID", example = "8088")
     private Long userId;
 
-    @Schema(description = "角色ID")
+    @Schema(description = "角色ID", example = "8088")
     private Long roleId;
 
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     @Schema(description = "数据来源：SYSTEM=系统内置，USER=用户创建")
     private String source;
 

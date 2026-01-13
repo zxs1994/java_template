@@ -45,7 +45,7 @@ public class ${entity} extends BaseEntity {
     @TableLogic
     @JsonIgnore
     </#if>
-    @Schema(description = "${field.comment}")
+    @Schema(description = "${field.comment}"<#if field.name?ends_with("id")>, example = "8088"</#if>)
     <#-- 自动填充 -->
     <#if field.fill??>
     @TableField(fill = FieldFill.${field.fill})

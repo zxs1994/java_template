@@ -128,7 +128,7 @@ java -Xms512m -Xmx1g -jar target/java_template-1.0.0.jar --spring.profiles.activ
 
 ### 配置
 - 默认激活 profile：`application.yml` 中 `spring.profiles.active=dev`
-- 开发环境数据库配置：`src/main/resources/application-dev.yml`（默认指向 `jdbc:mysql://127.0.0.1:3306/demo?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai&useSSL=false`）
+- 开发环境数据库配置：`src/main/resources/application-dev.yml`
 - 生产环境配置：`src/main/resources/application-prod.yml`
 
 ---
@@ -231,37 +231,122 @@ curl -X GET http://localhost:8088/sys/user
 
 ## 开发注意事项 & 约定 ⚠️
 
-`BaseEntity` 使用 `OffsetDateTime` 存储 `createdAt` / `updatedAt`。项目中提供了 `TimeProvider`（`src/main/java/com/github/zxs1994/java_template/util/TimeProvider.java`），其 `now()` 返回 `OffsetDateTime.now(ZoneOffset.ofHours(8))`（即固定 `+08:00`），并在 `MyMetaObjectHandler` 中用于自动填充（`createdAt` / `updatedAt`）。
+`BaseEntity` 使用 `OffsetDateTime` 存储 `createdAt` / `updatedAt`，并在 `MyMetaObjectHandler` 中用于自动填充。
 
-- `spring.jackson.time-zone=Asia/Shanghai` 与 `spring.jackson.serialization.write-dates-as-timestamps=false`：对于 `OffsetDateTime` 来说序列化会带偏移，但该配置仍推荐保留，以保证 `LocalDateTime` / `Instant` 的序列化行为一致且对客户端友好。
+**时间存储与展示约定：**
 
-## MySQL & Spring Boot 时间相关配置说明
+- 数据库字段类型统一使用 **`TIMESTAMP`**
+- 数据库存储时间统一为 **UTC**
+- Java 实体层使用 `OffsetDateTime`（显式携带 offset）
+- 接口返回阶段由 **Jackson** 统一转换为北京时间（`+08:00`）进行展示
+
+```yaml
+spring:
+  jackson:
+    time-zone: Asia/Shanghai
+    serialization:
+      write-dates-as-timestamps: false
+```
+
+> ⚠️ 说明  
+> `spring.jackson.time-zone` **不会修改 OffsetDateTime 的值本身**，  
+> 仅在 JSON 序列化阶段将时间转换为北京时间用于展示。
+
+---
+
+## MySQL & Spring Boot 时间相关配置说明  
+（`TIMESTAMP + OffsetDateTime` 组合）
+
+> 说明  
+> MySQL 默认时区通常为 **UTC（+00:00）**。  
+> 本项目默认约定：**数据库使用 UTC 存储时间，接口返回阶段再统一转换为北京时间展示**。
 
 | 配置 | 作用 | 适用类型 / 场景 | 是否对当前项目必需 |
 |------|------|----------------|----------------|
-| `spring.jackson.time-zone=Asia/Shanghai` | 控制 Jackson 序列化/反序列化 JSON 时使用的时区 | `java.util.Date`、`java.util.Calendar`、`Instant`；不会影响 `OffsetDateTime` 或 `LocalDateTime` | ❌ 对 `OffsetDateTime` 不必需，只影响 JSON 展示 |
-| `spring.jackson.serialization.write-dates-as-timestamps=false` | 禁止将时间序列化为时间戳，改为 ISO8601 字符串格式 | 所有 Jackson 可序列化的时间类型 (`Date` / `LocalDateTime` / `OffsetDateTime`) | ✅ 推荐保留，用于保证前端可读性 |
-| `SET GLOBAL time_zone = "+08:00"` | 设置 MySQL Server 默认时区 | `TIMESTAMP` 类型、带 `CURRENT_TIMESTAMP` 默认值的列 | ❌ 对 `DATETIME` 无效，不必需 |
-| `-Duser.timezone=Asia/Shanghai` | 设置 JVM 默认时区 | `Date`、`Calendar`、`LocalDateTime.now()`、`OffsetDateTime.now()`（不带显式 ZoneOffset 时） | ❌ 对显式 `OffsetDateTime.now(ZoneOffset.ofHours(8))` 不必需 |
-| `spring.datasource.url=jdbc:mysql://...&serverTimezone=Asia/Shanghai` | 告诉 JDBC 数据库服务端时区，用于 `TIMESTAMP` ↔ Java Date / Calendar / Instant 的自动换算 | `TIMESTAMP`、`Date`、`Instant` | ❌ 对 `DATETIME` + `OffsetDateTime` 不必需 |
+| `spring.jackson.time-zone=Asia/Shanghai` | 控制 Jackson 序列化 JSON 时的展示时区 | `OffsetDateTime` / `Instant` / `Date` | ✅ 必需 |
+| `spring.jackson.serialization.write-dates-as-timestamps=false` | 禁止序列化为时间戳，改为 ISO-8601 字符串 | 所有时间类型 | ✅ 推荐保留 |
+| `SET GLOBAL time_zone = "+00:00"` | 临时设置 MySQL Server 时区（仅当前运行周期有效） | `TIMESTAMP` | ❌ 不推荐（仅调试用） |
+| `-Duser.timezone=UTC` | 设置 JVM 默认时区 | `Date` / `LocalDateTime.now()` | ❌ 非必须 |
+| `serverTimezone=UTC` | JDBC 在 `TIMESTAMP` ↔ Java 时间类型转换时使用 | `TIMESTAMP` ↔ `OffsetDateTime` | ✅ 必需 |
+
+---
+
+> ⚠️ 注意  
+> `SET GLOBAL time_zone` 只在当前 MySQL 实例运行期间生效，**重启即失效**。  
+> 若需要长期生效，应在 MySQL 配置文件（如 `my.cnf` / `my.ini`）中通过 `default-time-zone='+00:00'` 设置，  
+> 或在容器/云数据库层面统一指定时区。
+
+### 时间流转说明（真实执行链路）
+
+**1️⃣ 数据库存储（UTC）**
+
+```sql
+TIMESTAMP → 2026-01-13 03:02:30
+```
+
+**2️⃣ JDBC 读取（UTC → Java）**
+
+```java
+OffsetDateTime 2026-01-13T03:02:30Z
+```
+
+**3️⃣ 接口返回（Jackson 序列化）**
+
+```json
+{
+  "createdAt": "2026-01-13T11:02:30+08:00",
+  "updatedAt": "2026-01-13T11:29:10+08:00"
+}
+```
 
 ---
 
 ### 小结说明
 
-1. **OffsetDateTime + DATETIME**  
-   - 当前项目使用这种组合，时间语义完全由应用层控制  
-   - 数据库不做时区换算，JDBC 不干预  
-   - 所以除 `spring.jackson.serialization.write-dates-as-timestamps=false` 之外，其他配置大部分是“多余的安全网/历史兼容”，可删也可留作注释
+1. **当前项目时间策略（推荐）**
+   - 数据库：UTC（TIMESTAMP）
+   - 应用层：OffsetDateTime（带 offset）
+   - 接口层：Jackson 转换为北京时间
+   - 前端：无需再处理时区
 
-2. **Date / TIMESTAMP / CURRENT_TIMESTAMP 场景**  
-   - `serverTimezone`、`SET GLOBAL time_zone`、`-Duser.timezone` 才会生效  
-   - 主要目的是让 JDBC / DB 在自动转换时不漂移
+   > 本项目采用数据库 UTC 方案。
 
-3. **JSON 序列化展示**  
-   - `spring.jackson.time-zone` 只影响展示，不影响 OffsetDateTime 本身  
-   - OffsetDateTime 本身带 offset，Jackson 默认会按 offset 输出，无需额外时区配置
+2. **为什么不用 DATETIME**
+   - 不携带时区语义
+   - JDBC 不做自动时区转换
+   - 多服务/多时区部署下易产生歧义
 
+3. **什么时候需要额外关注时区**
+   - 使用 `java.util.Date`
+   - 使用 `LocalDateTime.now()`
+   - 使用数据库 `CURRENT_TIMESTAMP`
+
+> **一句话规范：**  
+> 数据库存 UTC，Java 用 OffsetDateTime，接口层转北京时间返回。
+
+> 若项目选择数据库直接存储北京时间，请同步调整本节配置说明，避免混用两种时间策略。
+
+---
+
+### 如果希望数据库直接存储北京时间
+
+若希望 **数据库中看到和读取的就是北京时间（+08:00）**，可在 MySQL 配置文件中进行如下设置：
+
+```ini
+[mysqld]
+default-time-zone = '+08:00'
+```
+
+效果说明：
+
+- `TIMESTAMP` 字段将以北京时间写入与读取
+- `CURRENT_TIMESTAMP` / `NOW()` 等函数基于北京时间
+- JDBC 读取到的时间即为北京时间（不会再发生 +8 小时转换）
+
+> ⚠️ 注意  
+> - 该方式会影响整个 MySQL 实例  
+> - 在多服务或跨时区系统中需谨慎使用  
+> - 与“数据库 UTC、应用层转换”的方案二选一即可，**不建议混用**
 
 ---
 
