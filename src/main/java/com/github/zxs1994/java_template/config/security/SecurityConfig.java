@@ -4,25 +4,41 @@ import com.github.zxs1994.java_template.common.ApiResponse;
 import com.github.zxs1994.java_template.config.security.jwt.JwtAuthenticationFilter;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import com.github.zxs1994.java_template.mapper.SysUserMapper;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.security.servlet.UserDetailsServiceAutoConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.io.IOException;
+import java.util.List;
 
 @Configuration
 @RequiredArgsConstructor
 @EnableAutoConfiguration(exclude = {UserDetailsServiceAutoConfiguration.class})
 public class SecurityConfig {
+
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration config = new CorsConfiguration();
+        config.addAllowedOriginPattern("*");  // 或指定域名
+        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        config.addAllowedHeader("*");          // 或只写你需要的头
+        // allowCredentials 默认 false
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", config);
+        return source;
+    }
 
     // 注册密码加密 Bean
     @Bean
@@ -40,35 +56,36 @@ public class SecurityConfig {
             ObjectMapper objectMapper) throws Exception {
 
         http
-                // 禁用 CSRF，因为我们用 JWT
-                .csrf(csrf -> csrf.disable())
+            .cors(Customizer.withDefaults())
+            // 禁用 CSRF，因为我们用 JWT
+            .csrf(csrf -> csrf.disable())
 
-                // 不使用表单登录或 HTTP Basic
-                .formLogin(form -> form.disable())
-                .httpBasic(basic -> basic.disable())
+            // 不使用表单登录或 HTTP Basic
+            .formLogin(form -> form.disable())
+            .httpBasic(basic -> basic.disable())
 
-                // 权限配置
-                .authorizeHttpRequests(auth -> auth
-                        // 白名单（Spring Security 级别）
-                        .requestMatchers(securityProperties.getWhitelistUrls().toArray(String[]::new))
-                        .permitAll()
+            // 权限配置
+            .authorizeHttpRequests(auth -> auth
+                    // 白名单（Spring Security 级别）
+                    .requestMatchers(securityProperties.getWhitelistUrls().toArray(String[]::new))
+                    .permitAll()
 
-                        // 其他一律要求登录（兜底）
-                        .anyRequest().authenticated()
-                )
+                    // 其他一律要求登录（兜底）
+                    .anyRequest().authenticated()
+            )
 
-                // 🔐 谁是谁 → before JWT 过滤器放在 UsernamePasswordAuthenticationFilter 前
-                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
-                // 🔑 能不能 → after 权限过滤
-                .addFilterAfter(sysPermissionFilter, JwtAuthenticationFilter.class)
+            // 🔐 谁是谁 → before JWT 过滤器放在 UsernamePasswordAuthenticationFilter 前
+            .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+            // 🔑 能不能 → after 权限过滤
+            .addFilterAfter(sysPermissionFilter, JwtAuthenticationFilter.class)
 
-                // 返回 JSON 而不是默认 HTML 登录页
-                .exceptionHandling(ex -> ex
-                        .authenticationEntryPoint((req, res, e) ->
-                                handleAuthError(res, objectMapper, e))
-                        .accessDeniedHandler((req, res, e) ->
-                                handleAuthError(res, objectMapper, e))
-                );
+            // 返回 JSON 而不是默认 HTML 登录页
+            .exceptionHandling(ex -> ex
+                    .authenticationEntryPoint((req, res, e) ->
+                            handleAuthError(res, objectMapper, e))
+                    .accessDeniedHandler((req, res, e) ->
+                            handleAuthError(res, objectMapper, e))
+            );
 
         return http.build();
     }
