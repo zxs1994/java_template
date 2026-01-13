@@ -1,6 +1,7 @@
 package com.github.zxs1994.java_template.controller;
 
 import com.github.zxs1994.java_template.common.BizException;
+import com.github.zxs1994.java_template.dto.PermissionTreeNode;
 import com.github.zxs1994.java_template.entity.SysPermission;
 import com.github.zxs1994.java_template.service.ISysPermissionService;
 import org.springframework.web.bind.annotation.*;
@@ -86,4 +87,11 @@ public class SysPermissionController {
         }
         return sysPermissionService.page(new Page<>(page, size), qw);
     }
+
+    @GetMapping("tree")
+    @Operation(summary = "权限树形数据")
+    public List<PermissionTreeNode> tree() {
+        return sysPermissionService.getPermissionTree();
+    }
+
 }

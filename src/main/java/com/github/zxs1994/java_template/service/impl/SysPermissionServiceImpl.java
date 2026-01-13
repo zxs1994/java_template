@@ -7,6 +7,7 @@ import com.github.zxs1994.java_template.mapper.SysPermissionMapper;
 import com.github.zxs1994.java_template.service.ISysPermissionService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -67,13 +68,7 @@ public class SysPermissionServiceImpl extends ServiceImpl<SysPermissionMapper, S
 
         for (SysPermission p : permissions) {
             PermissionTreeNode node = new PermissionTreeNode();
-            node.setId(p.getId());
-            node.setCode(p.getCode());
-            node.setName(p.getName());
-            node.setPath(p.getPath());
-            node.setMethod(p.getMethod());
-            node.setAuthLevel(p.getAuthLevel());
-            node.setParentId(p.getParentId());
+            BeanUtils.copyProperties(p, node);
 
             nodeMap.put(p.getId(), node);
         }
