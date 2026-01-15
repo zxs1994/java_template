@@ -37,6 +37,7 @@ CREATE TABLE `sys__role` (
 DROP TABLE IF EXISTS `sys__permission`;
 CREATE TABLE `sys__permission` (
   `id` BIGINT NOT NULL AUTO_INCREMENT COMMENT '主键',
+  `parent_id` BIGINT NULL COMMENT '父权限ID',
   `name` VARCHAR(50) NOT NULL COMMENT '权限名',
   `code` VARCHAR(50) NOT NULL COMMENT '权限编码',
   `method` VARCHAR(50) NOT NULL COMMENT '请求方式',
@@ -44,7 +45,6 @@ CREATE TABLE `sys__permission` (
   `module` VARCHAR(50) NOT NULL COMMENT '权限模块',
   `module_name` VARCHAR(50) NOT NULL COMMENT '权限模块名称',
   `auth_level` INT NOT NULL DEFAULT 0 COMMENT '访问级别：0权限校验 1白名单',
-  `parent_id` BIGINT NULL COMMENT '父权限ID',
   `sort` INT DEFAULT 0 COMMENT '排序',
   `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
@@ -89,9 +89,9 @@ CREATE TABLE `sys__role_permission` (
 -- ----------------------------
 -- 初始化系统数据
 -- ----------------------------
-INSERT INTO `sys__user` (`email`, `name`, `password`, `source`) VALUES ('admin@qq.com', 'admin', '$2a$10$0.RvF.iEnw4grHb.WkAfdOi7qeKPyIfXDIAtrlZZk6QtfCNsRugMO', 'SYSTEM');
-INSERT INTO `sys__role` (`name`, `code`, `source`) VALUES ('超级管理员', 'SUPER_ADMIN', 'SYSTEM');
-INSERT INTO `sys__permission` (`name`, `code`, `method`, `path`, `module`, `module_name`) VALUES("全局模块", "ALL", "*", "*", "ALL", "全局");
-INSERT INTO `sys__user_role` (`user_id`, `role_id`, `source`) VALUES (1, 1, 'SYSTEM');
-INSERT INTO `sys__role_permission` (`role_id`, `permission_id`, `source`) VALUES (1, 1, 'SYSTEM');
+INSERT INTO `sys__user` (`email`, `name`, `password`, `source`) VALUES ('admin@qq.com', 'admin', '$2a$10$0.RvF.iEnw4grHb.WkAfdOi7qeKPyIfXDIAtrlZZk6QtfCNsRugMO', 'SYSTEM'), ('xusheng94@qq.com', '旭升', '$2a$10$zIbKDqIoDB8U6NkolRYfE.f9W9/BajwuZ/6KdbqzK8LyU6SgUIhUu', 'USER');
+INSERT INTO `sys__role` (`name`, `code`, `source`) VALUES ('超级管理员', 'SUPER_ADMIN', 'SYSTEM'), ('观察者',     'OBSERVER',    'SYSTEM');
+INSERT INTO `sys__permission` (`parent_id`, `name`, `code`, `method`, `path`, `module`, `module_name`) VALUES (null, '全局模块', 'ALL', '*', '/**', 'ALL', '全局'), (1, '全局查看', 'ALL_GET', 'GET', '/**', 'ALL', '全局');
+INSERT INTO `sys__user_role` (`user_id`, `role_id`, `source`) VALUES (1, 1, 'SYSTEM'), (2, 2, 'USER');
+INSERT INTO `sys__role_permission` (`role_id`, `permission_id`, `source`) VALUES (1, 1, 'SYSTEM'), (2, 2, 'USER');
 

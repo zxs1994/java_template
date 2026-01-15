@@ -20,10 +20,14 @@ security:
       - /common/**
       - /auth/**
     login-only-urls:
+      - /sys/codesByUserId
       - /sys/profile
       - /sys/password
 
 # JWT 配置
+#  本项目使用 HS256 算法生成 JWT，
+#  jwt.secret 必须至少 32 字节长度，否则 jjwt 会拒绝启动。
+#  推荐使用 openssl rand -base64 32 生成随机密钥
 jwt:
   secret: xusheng-secret-key-please-change-to-strong-key
   expire-days: 3

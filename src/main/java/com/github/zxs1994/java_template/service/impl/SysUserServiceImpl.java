@@ -3,8 +3,8 @@ package com.github.zxs1994.java_template.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.github.zxs1994.java_template.common.BizException;
-import com.github.zxs1994.java_template.dto.LoginRequest;
-import com.github.zxs1994.java_template.dto.LoginResponse;
+import com.github.zxs1994.java_template.dto.LoginDTO;
+import com.github.zxs1994.java_template.vo.LoginVO;
 import com.github.zxs1994.java_template.entity.SysUser;
 import com.github.zxs1994.java_template.mapper.SysUserMapper;
 import com.github.zxs1994.java_template.service.ISysUserService;
@@ -29,7 +29,7 @@ public class SysUserServiceImpl extends SystemProtectService<SysUserMapper, SysU
     private final PasswordEncoder passwordEncoder;
     private final JwtUtils jwtUtils;
 
-    public LoginResponse login(LoginRequest req) {
+    public LoginVO login(LoginDTO req) {
         System.out.println(req.toString());
         QueryWrapper<SysUser> wrapper = new QueryWrapper<>();
         wrapper.eq("email", req.getEmail());
@@ -47,7 +47,7 @@ public class SysUserServiceImpl extends SystemProtectService<SysUserMapper, SysU
         // 3️⃣ 生成 token
         String token = jwtUtils.generateToken(sysUser);
 
-        LoginResponse res = new LoginResponse();
+        LoginVO res = new LoginVO();
         res.setToken(token);
         return res;
     }

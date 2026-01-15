@@ -31,7 +31,7 @@ public class CommonController {
 
     @GetMapping("/enums")
     @Operation(summary = "获取所有枚举")
-    public Map<String, List<Map<String, Object>>> list() {
+    public Map<String, List<Map<String, Object>>> enums() {
         return EnumUtils.loadAllEnums(projectProperties.getBasePackage() + ".enums");
     }
 }

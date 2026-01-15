@@ -6,13 +6,13 @@ import com.github.zxs1994.java_template.enums.AuthLevel;
 import com.github.zxs1994.java_template.mapper.SysPermissionMapper;
 
 import com.github.zxs1994.java_template.util.CurrentUser;
+import com.github.zxs1994.java_template.util.SysPermissionMatcher;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
-import org.springframework.util.AntPathMatcher;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
@@ -24,7 +24,6 @@ public class SysPermissionFilter extends OncePerRequestFilter {
 
     private final SysPermissionMapper sysPermissionMapper;
     private final AuthLevelResolver authLevelResolver;
-    private final AntPathMatcher matcher = new AntPathMatcher();
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
@@ -59,17 +58,8 @@ public class SysPermissionFilter extends OncePerRequestFilter {
         // 4️⃣ NORMAL：需要权限校验
         List<SysPermission> userPermissions = sysPermissionMapper.selectByUserId(userId);
 
-        // System.out.println(userPermissions.toString());
-
-        // 先过滤 method
-        List<SysPermission> filteredByMethod = userPermissions.stream()
-                .filter(p -> p.getMethod().equals("*") || p.getMethod().equalsIgnoreCase(method))
-                .toList();
-
-        // 匹配权限：全局 / 模块总开关 / 动态接口 / 静态接口 都统一用 matcher
-        SysPermission matched = filteredByMethod.stream()
-                .filter(p -> p.getPath().equals("*") && p.getModule().equals("ALL") // 全局权限
-                        || matcher.match(p.getPath(), path))                        // 其他接口
+        SysPermission matched = userPermissions.stream()
+                .filter(p -> SysPermissionMatcher.match(p, method, path))
                 .findFirst()
                 .orElse(null);
 

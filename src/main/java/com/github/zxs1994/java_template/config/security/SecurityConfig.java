@@ -1,11 +1,17 @@
 package com.github.zxs1994.java_template.config.security;
 
+import com.github.zxs1994.java_template.cache.SysPermissionCache;
 import com.github.zxs1994.java_template.common.ApiResponse;
 import com.github.zxs1994.java_template.config.security.jwt.JwtAuthenticationFilter;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import com.github.zxs1994.java_template.entity.SysPermission;
+import com.github.zxs1994.java_template.util.SysPermissionMatcher;
+import jakarta.servlet.RequestDispatcher;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.security.servlet.UserDetailsServiceAutoConfiguration;
 import org.springframework.context.annotation.Bean;
@@ -23,15 +29,16 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import java.io.IOException;
 import java.util.List;
 
+@Slf4j
 @Configuration
 @RequiredArgsConstructor
 @EnableAutoConfiguration(exclude = {UserDetailsServiceAutoConfiguration.class})
 public class SecurityConfig {
 
     private final SecurityProperties securityProperties;
-
     private final SysPermissionFilter sysPermissionFilter;
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final SysPermissionCache sysPermissionCache;
 
     // 注册密码加密 Bean
     @Bean
@@ -83,9 +90,9 @@ public class SecurityConfig {
             // 返回 JSON 而不是默认 HTML 登录页
             .exceptionHandling(ex -> ex
                     .authenticationEntryPoint((req, res, e) ->
-                            handleAuthError(res, objectMapper, e))
+                            handleAuthError(req, res, objectMapper, e))
                     .accessDeniedHandler((req, res, e) ->
-                            handleAuthError(res, objectMapper, e))
+                            handleAuthError(req, res, objectMapper, e))
             );
 
         return http.build();
@@ -95,16 +102,37 @@ public class SecurityConfig {
      * ⭐ 统一权限 / 认证错误输出
      */
     private void handleAuthError(
+            HttpServletRequest request,
             HttpServletResponse response,
             ObjectMapper objectMapper,
             Exception e
     ) throws IOException {
         int code = response.getStatus();
-//        System.out.println(code);
-//        System.out.println(e.getMessage());
         response.setStatus(HttpServletResponse.SC_OK);
         response.setContentType("application/json;charset=UTF-8");
-        ApiResponse<?> body = ApiResponse.fail(code);
+        ApiResponse<?> body;
+
+        if (code == HttpServletResponse.SC_FORBIDDEN) {
+            String method = request.getMethod();
+            // 原始uri
+            String originalUri = (String) request.getAttribute(
+                    RequestDispatcher.ERROR_REQUEST_URI
+            );
+
+            SysPermission rule = SysPermissionMatcher.matchExactThenGlobal(sysPermissionCache.listAll(), method, originalUri);
+
+            log.info("Permission check start: method={}, uri={}", method, originalUri);
+            log.info("Matched rule: {}", rule);
+
+            if (rule != null) {
+                body = ApiResponse.fail(code, rule,"没有 " + rule.getName() + " 权限");
+            } else {
+                body = ApiResponse.fail(code);
+            }
+
+        } else {
+            body = ApiResponse.fail(code);
+        }
 
         response.getWriter().write(objectMapper.writeValueAsString(body));
     }

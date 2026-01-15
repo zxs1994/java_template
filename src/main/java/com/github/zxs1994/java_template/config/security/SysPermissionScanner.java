@@ -40,9 +40,8 @@ import java.util.Map;
  * </ul>
  */
 @Component
-@Profile("dev")
 @RequiredArgsConstructor
-public class SysPermissionScanner implements ApplicationRunner {
+public class SysPermissionScanner {
 
     @Value("${sys-permission.scan-on-startup:false}")
     private boolean scanOnStartup;
@@ -51,8 +50,7 @@ public class SysPermissionScanner implements ApplicationRunner {
     private final SysPermissionMapper sysPermissionMapper;
     private final AuthLevelResolver authLevelResolver;
 
-    @Override
-    public void run(ApplicationArguments args) {
+    public void scanAndSave() {
 
         if (!scanOnStartup) return;
 
@@ -150,11 +148,11 @@ public class SysPermissionScanner implements ApplicationRunner {
     /* -------------------- 辅助方法 -------------------- */
 
     private void initGlobalPermissions() {
-        insertIfAbsent("全局模块", "ALL", "*", "*", "ALL", "全局", null);
-        insertIfAbsent("全局查看", "ALL_GET", "GET", "*", "ALL", "全局", 1L);
-        insertIfAbsent("全局创建", "ALL_POST", "POST", "*", "ALL", "全局", 1L);
-        insertIfAbsent("全局修改", "ALL_PUT", "PUT", "*", "ALL", "全局", 1L);
-        insertIfAbsent("全局删除", "ALL_DELETE", "DELETE", "*", "ALL", "全局", 1L);
+        insertIfAbsent("全局模块", "ALL", "*", "/**", "ALL", "全局", null);
+        insertIfAbsent("全局查看", "ALL_GET", "GET", "/**", "ALL", "全局", 1L);
+        insertIfAbsent("全局创建", "ALL_POST", "POST", "/**", "ALL", "全局", 1L);
+        insertIfAbsent("全局修改", "ALL_PUT", "PUT", "/**", "ALL", "全局", 1L);
+        insertIfAbsent("全局删除", "ALL_DELETE", "DELETE", "/**", "ALL", "全局", 1L);
     }
 
     /**

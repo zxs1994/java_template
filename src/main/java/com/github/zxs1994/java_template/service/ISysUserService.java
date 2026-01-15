@@ -1,7 +1,7 @@
 package com.github.zxs1994.java_template.service;
 
-import com.github.zxs1994.java_template.dto.LoginRequest;
-import com.github.zxs1994.java_template.dto.LoginResponse;
+import com.github.zxs1994.java_template.dto.LoginDTO;
+import com.github.zxs1994.java_template.vo.LoginVO;
 import com.github.zxs1994.java_template.entity.SysUser;
 import com.baomidou.mybatisplus.extension.service.IService;
 
@@ -14,5 +14,5 @@ import com.baomidou.mybatisplus.extension.service.IService;
  * @since 2026-01-10 01:41:52
  */
 public interface ISysUserService extends IService<SysUser> {
-    LoginResponse login(LoginRequest req);
+    LoginVO login(LoginDTO req);
 }

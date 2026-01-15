@@ -1,4 +1,4 @@
-package com.github.zxs1994.java_template.dto;
+package com.github.zxs1994.java_template.vo;
 
 import com.github.zxs1994.java_template.entity.SysPermission;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -10,8 +10,8 @@ import java.util.List;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
-public class PermissionTreeNode extends SysPermission {
+public class SysPermissionTreeNode extends SysPermission {
 
-    @Schema(description = "🌿树枝", example = "[{}]")
-    private List<PermissionTreeNode> children = new ArrayList<>();
+    @Schema(description = "🌿树枝", example = "[]")
+    private List<SysPermissionTreeNode> children = new ArrayList<>();
 }

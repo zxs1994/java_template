@@ -14,6 +14,9 @@ import java.util.Date;
 @Component
 public class JwtUtils {
 
+    private static final String AUTH_HEADER = "Authorization";
+    private static final String BEARER_PREFIX = "Bearer ";
+
     private final JwtProperties jwtProperties;
     private final Key key;
 
@@ -84,11 +87,11 @@ public class JwtUtils {
      * 从请求头获取 token
      */
     public String resolveToken(HttpServletRequest request) {
-        String bearer = request.getHeader("Authorization");
-        if (bearer != null && bearer.startsWith("Bearer ")) {
-            return bearer.substring(7);
+        String auth = request.getHeader(AUTH_HEADER);
+        if (auth == null || !auth.startsWith(BEARER_PREFIX)) {
+            return null;
         }
-        return null;
+        return auth.substring(BEARER_PREFIX.length());
     }
 
     /**
