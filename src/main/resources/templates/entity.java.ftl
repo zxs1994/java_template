@@ -29,7 +29,7 @@ public class ${entity} extends BaseEntity {
     @TableId(type = IdType.AUTO)
     </#if>
     <#-- 自动忽略敏感字段 -->
-    <#if field.name == "token_version">
+    <#if field.name == "">
     @JsonIgnore
     </#if>
     <#-- 密码类字段：只写 -->
@@ -37,7 +37,7 @@ public class ${entity} extends BaseEntity {
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     </#if>
     <#-- source字段：只读 -->
-    <#if field.name == "source">
+    <#if field.name == "source" || field.name == "token_version">
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     </#if>
     <#-- 逻辑删除 -->

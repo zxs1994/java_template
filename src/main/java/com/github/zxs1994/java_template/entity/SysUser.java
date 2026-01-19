@@ -14,7 +14,7 @@ import com.github.zxs1994.java_template.common.BaseEntity;
  * </p>
  *
  * @author xusheng
- * @since 2026-01-13 12:28:38
+ * @since 2026-01-19 13:41:52
  */
 
 @Data
@@ -33,7 +33,7 @@ public class SysUser extends BaseEntity {
     @Schema(description = "密码")
     private String password;
 
-    @JsonIgnore
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     @Schema(description = "token版本")
     private Integer tokenVersion;
 
