@@ -4,7 +4,9 @@ import com.github.zxs1994.java_template.common.BasePage;
 import com.github.zxs1994.java_template.common.BizException;
 import com.github.zxs1994.java_template.dto.SysRoleDto;
 import com.github.zxs1994.java_template.entity.SysRole;
+import com.github.zxs1994.java_template.service.ISysPermissionService;
 import com.github.zxs1994.java_template.service.ISysRoleService;
+import com.github.zxs1994.java_template.vo.SysPermissionTreeNode;
 import com.github.zxs1994.java_template.vo.SysRoleVo;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -30,6 +32,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 public class SysRoleController {
 
     private final ISysRoleService sysRoleService;
+    private final ISysPermissionService sysPermissionService;
 
     @GetMapping("/page")
     @Operation(summary = "角色列表(分页)")
@@ -83,4 +86,9 @@ public class SysRoleController {
         return sysRoleService.list();
     }
 
+    @GetMapping("/permission-tree")
+    @Operation(summary = "权限树形数据")
+    public List<SysPermissionTreeNode> permissionTree() {
+        return sysPermissionService.getPermissionTree();
+    }
 }
