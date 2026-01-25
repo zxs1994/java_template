@@ -11,6 +11,7 @@
 - RBAC 权限模型（支持全局 / 模块 / 接口级）
 - 权限代码自动生成机制
 - 代码生成器示例
+- 支持多租户
 
 适合 **后台管理系统起步**、**权限模型设计参考**、或作为公司内部基础模板。
 
@@ -229,7 +230,7 @@
 
 
 ### 前置条件
-- JDK 17
+- JDK 21
 - Maven 3.8+
 - MySQL 8+（或根据 `application-dev.yml` 修改为你的数据源）
 
@@ -269,7 +270,7 @@ java -Xms512m -Xmx1g -jar target/java_template-1.0.0.jar --spring.profiles.activ
 
 ## 数据库 & 样例数据 🗄️
 
-数据库建表与样例数据在 `init.sql`，包含 sys__user、sys__role、sys__permission、sys__user_role、sys__role_permission 五张表结构。导入后即可直接测试 API。
+数据库建表与样例数据在 `init.sql`，包含 sys__dept、sys__user、sys__role、sys__permission、sys__user_role、sys__role_permission 六张表结构。导入后即可直接测试 API。
 
 ---
 

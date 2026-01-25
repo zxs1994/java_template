@@ -52,7 +52,9 @@ public class SysDeptServiceImpl extends ServiceImpl<SysDeptMapper, SysDept> impl
 
         // 2️⃣ 顶级部门不能删
         if (dept.getParentId() == null) {
-            throw new BizException(403, "顶级部门不能删除");
+            if (CurrentUser.isTenantUser()) {
+                throw new BizException(403, "顶级部门不能删除");
+            }
         }
 
         // 3️⃣ 是否存在子部门
@@ -82,6 +84,10 @@ public class SysDeptServiceImpl extends ServiceImpl<SysDeptMapper, SysDept> impl
     @Override
     @Transactional
     public boolean save(SysDept sysDept) {
+
+        if (CurrentUser.isPlatformUser()) {
+            throw new BizException(400, "请切换到当前租户操作");
+        }
 
         sysDept.setTenantId(CurrentUser.getTenantId());
 

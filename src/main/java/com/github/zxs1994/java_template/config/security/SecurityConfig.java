@@ -18,6 +18,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
@@ -67,10 +68,10 @@ public class SecurityConfig {
             // 让 Spring Security 应用 corsConfigurationSource 配置
             .cors(Customizer.withDefaults())
             // 禁用 CSRF，因为我们用 JWT
-            .csrf(csrf -> csrf.disable())
+            .csrf(AbstractHttpConfigurer::disable)
             // 不使用表单登录或 HTTP Basic
-            .formLogin(form -> form.disable())
-            .httpBasic(basic -> basic.disable())
+            .formLogin(AbstractHttpConfigurer::disable)
+            .httpBasic(AbstractHttpConfigurer::disable)
 
             // 权限配置
             .authorizeHttpRequests(auth -> auth

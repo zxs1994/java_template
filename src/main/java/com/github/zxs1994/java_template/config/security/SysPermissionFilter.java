@@ -12,6 +12,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.jspecify.annotations.NonNull;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -26,9 +27,9 @@ public class SysPermissionFilter extends OncePerRequestFilter {
     private final AuthLevelResolver authLevelResolver;
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request,
-                                    HttpServletResponse response,
-                                    FilterChain filterChain) throws ServletException, IOException {
+    protected void doFilterInternal(@NonNull HttpServletRequest request,
+                                    @NonNull HttpServletResponse response,
+                                    @NonNull FilterChain filterChain) throws ServletException, IOException {
 
         String path = request.getRequestURI();
         String method = request.getMethod();
@@ -69,7 +70,6 @@ public class SysPermissionFilter extends OncePerRequestFilter {
                 .orElse(null);
 
         if (matched != null) {
-            System.out.println(matched.toString());
             filterChain.doFilter(request, response);
         } else {
             response.sendError(HttpServletResponse.SC_FORBIDDEN);

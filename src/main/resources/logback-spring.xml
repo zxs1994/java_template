@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration scan="true" scanPeriod="30 seconds">
+
+    <!-- ================= 基础变量 ================= -->
+
+    <!-- 项目包名，用于单独配置业务包日志级别 -->
+    <springProperty name="BASE_PACKAGE"
+                    source="project.base-package"/>
+
+    <!-- 日志输出路径，支持 application.yml / prod.yml 覆盖 -->
+    <springProperty name="LOG_PATH"
+                    source="logging.file.name"
+                    defaultValue="logs/app.log"/>
+
+    <!-- ================= 输出格式 ================= -->
+
+    <!--
+        日志输出 pattern：
+        %d{ISO8601+时区}  日期和时间
+        %5p                  日志级别，占5个字符宽度，保证对齐
+        [%-24thread]     线程名，占24个字符宽度，左对齐
+        %logger{36}          Logger 名称，最多36字符
+        : %msg%n             日志消息 + 换行
+    -->
+    <property name="LOG_PATTERN"
+              value="%d{yyyy-MM-dd'T'HH:mm:ss.SSSXXX}  %5p --- [%-24thread] %logger{36} : %msg%n"/>
+
+    <!-- ================= Console 输出 ================= -->
+
+    <!-- 控制台输出，用于开发时快速调试 -->
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>${LOG_PATTERN}</pattern>
+        </encoder>
+    </appender>
+
+    <!-- ================= 默认 root logger ================= -->
+
+    <!--
+        没有激活 profile 时的兜底配置
+        level="INFO" 表示打印 INFO 及以上日志
+        输出到 CONSOLE
+    -->
+    <root level="INFO">
+        <appender-ref ref="CONSOLE"/>
+    </root>
+
+    <!-- ================= dev 环境 ================= -->
+
+    <springProfile name="dev">
+
+        <!-- 文件输出，RollingFileAppender 每天切一个新日志 -->
+        <appender name="DEV_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+            <file>${LOG_PATH}</file>
+            <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+                <!-- 文件名 pattern，每天生成一个新文件 -->
+                <fileNamePattern>${LOG_PATH}.%d{yyyy-MM-dd}.log</fileNamePattern>
+                <!-- 保留最近 7 天日志，自动删除更早的 -->
+                <maxHistory>7</maxHistory>
+            </rollingPolicy>
+            <encoder>
+                <pattern>${LOG_PATTERN}</pattern>
+            </encoder>
+        </appender>
+
+        <!-- root logger：INFO 级别输出到控制台和文件 -->
+        <root level="INFO">
+            <appender-ref ref="CONSOLE"/>
+            <appender-ref ref="DEV_FILE"/>
+        </root>
+
+        <!-- 业务包单独 DEBUG 输出 -->
+        <logger name="${BASE_PACKAGE}" level="DEBUG"/>
+
+        <!-- Spring Web 框架日志输出 INFO 级别 -->
+        <logger name="org.springframework.web" level="INFO"/>
+
+    </springProfile>
+
+    <!-- ================= prod 环境 ================= -->
+
+    <springProfile name="prod">
+
+        <!-- 文件输出，RollingFileAppender + 压缩 -->
+        <appender name="PROD_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+            <file>${LOG_PATH}</file>
+            <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+                <!-- 每天一个文件，并压缩为 .gz -->
+                <fileNamePattern>${LOG_PATH}.%d{yyyy-MM-dd}.log.gz</fileNamePattern>
+                <!-- 保留最近 30 天日志，自动删除更早的 -->
+                <maxHistory>30</maxHistory>
+            </rollingPolicy>
+            <encoder>
+                <pattern>${LOG_PATTERN}</pattern>
+            </encoder>
+        </appender>
+
+        <!-- root logger：WARN 级别输出到文件和控制台 -->
+        <root level="WARN">
+            <appender-ref ref="CONSOLE"/>
+            <appender-ref ref="PROD_FILE"/>
+        </root>
+
+        <!-- 业务包 INFO 输出 -->
+        <logger name="${BASE_PACKAGE}" level="INFO"/>
+
+        <!-- Spring Web 框架 WARN 输出 -->
+        <logger name="org.springframework.web" level="WARN"/>
+
+    </springProfile>
+
+</configuration>

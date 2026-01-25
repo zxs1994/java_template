@@ -6,6 +6,7 @@ import com.github.zxs1994.java_template.config.security.SysPermissionScanner;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.core.env.Environment;
@@ -20,6 +21,7 @@ public class Application {
 
     @PostConstruct
     public void init() {
+
         // 注入当前系统版本
         ApiResponse.PROJECT_VERSION = env.getProperty("project.version");
         // 扫描入库权限

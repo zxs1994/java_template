@@ -65,14 +65,20 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
     @Override
     public boolean removeById(Long id) {
         SysUser sysUser;
-        try {
-            sysUser = getById(id);
-        } catch (BizException e) {
-            throw new BizException(403, "用户不属于当前租户!");
+
+        Long currentUserId = CurrentUser.getUserId();
+        if (id.equals(currentUserId)) {
+            throw new BizException(403, "不能删除当前登录用户");
         }
+
+        sysUser = getById(id);
+
         if (sysUser.getSource().equals(SourceType.SYSTEM.getCode())) {
-            throw new BizException(403, "系统内置用户不能删除!");
+            if (CurrentUser.isTenantUser()) {
+                throw new BizException(403, "系统内置用户不能删除!");
+            }
         }
+
         super.removeById(id);
         return true;
     }
@@ -86,7 +92,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
 
         SysUser sysUser = super.getOne(qw);
         if (sysUser == null) {
-            throw new BizException(404, "用户未找到");
+            throw new BizException(404, "用户不存在");
         }
         return sysUser;
     }
@@ -140,6 +146,11 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
             sysUser.setTenantId(CurrentUser.getTenantId());
         }
 
+        if (CurrentUser.isPlatformUser() && sysUser.getTenantId() == null) {
+            if (sysUser.getDeptId() != null) {
+                throw new BizException(400, "平台用户不输入任何部门");
+            }
+        }
         super.save(sysUser);
 
         Long userId = sysUser.getId();
@@ -196,6 +207,14 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
             }
         }
 
+        Long currentUserId = CurrentUser.getUserId();
+        if (sysUser.getId().equals(currentUserId)) {
+            if (!sysUser.getStatus()) {
+                throw new BizException(403, "不可禁用自己!");
+            }
+        }
+
+        // TODO 允许修改邮箱的问题，目前前端是禁用修改邮箱
         // 1️⃣ 校验 email
         if (email != null) {
             validateEmail(sysUser.getEmail());
