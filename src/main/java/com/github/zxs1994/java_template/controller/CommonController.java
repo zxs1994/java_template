@@ -1,5 +1,6 @@
 package com.github.zxs1994.java_template.controller;
 
+import com.github.zxs1994.java_template.cache.EnumCache;
 import com.github.zxs1994.java_template.config.ProjectProperties;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -27,11 +28,11 @@ import java.util.Map;
 @Tag(name = "公共", description = "公共控制器")
 public class CommonController {
 
-    private final ProjectProperties projectProperties;
+    private final EnumCache enumCache;
 
     @GetMapping("/enums")
     @Operation(summary = "获取所有枚举")
     public Map<String, List<Map<String, Object>>> enums() {
-        return EnumUtils.loadAllEnums(projectProperties.getBasePackage() + ".enums");
+        return enumCache.getAll();
     }
 }

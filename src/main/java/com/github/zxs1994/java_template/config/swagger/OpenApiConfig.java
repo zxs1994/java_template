@@ -83,12 +83,20 @@ public class OpenApiConfig {
             name = "springdoc.swagger-ui.group-enabled",
             havingValue = "true"
     )
+    public GroupedOpenApi platformApi() {
+        return baseBuilder("平台管理")
+                .pathsToMatch("/platform/**")
+                .build();
+    }
+
+    @Bean
+    @ConditionalOnProperty(
+            name = "springdoc.swagger-ui.group-enabled",
+            havingValue = "true"
+    )
     public GroupedOpenApi sysApi() {
-        return GroupedOpenApi.builder()
-                .group("系统管理")
+        return baseBuilder("系统管理")
                 .pathsToMatch("/sys/**")
-                .addOperationCustomizer(provider.apiResponseCustomizer())
-                .addOpenApiCustomizer(provider.securityCustomizer())
                 .build();
     }
 
@@ -98,12 +106,16 @@ public class OpenApiConfig {
             havingValue = "true"
     )
     public GroupedOpenApi bizApi() {
-        return GroupedOpenApi.builder()
-                .group("业务接口")
-                .pathsToExclude("/sys/**")
-                .addOperationCustomizer(provider.apiResponseCustomizer())
-                .addOpenApiCustomizer(provider.securityCustomizer())
+        return baseBuilder("业务接口")
+                .pathsToExclude("/sys/**", "/platform/**")
                 .build();
+    }
+
+    private GroupedOpenApi.Builder baseBuilder(String group) {
+        return GroupedOpenApi.builder()
+                .group(group)
+                .addOperationCustomizer(provider.apiResponseCustomizer())
+                .addOpenApiCustomizer(provider.securityCustomizer());
     }
 
 
