@@ -1,14 +1,13 @@
-# 使用 Java 21 JDK alpine 轻量镜像
-FROM eclipse-temurin:21-jdk-alpine
-
-# 设置工作目录
+# Stage 1: build
+FROM eclipse-temurin:21-jdk AS build
 WORKDIR /app
+COPY pom.xml .
+COPY src ./src
+RUN ./mvnw clean package -DskipTests
 
-# 复制打包好的 jar 文件（带版本号）并统一重命名
-COPY target/*.jar app.jar
-
-# 暴露端口（和 Spring Boot 配置一致）
-EXPOSE 8088
-
-# 启动命令
+# Stage 2: runtime
+FROM eclipse-temurin:21-jdk-alpine
+WORKDIR /app
+COPY --from=build /app/target/*.jar app.jar
+EXPOSE 8080
 CMD ["java", "-jar", "app.jar"]
