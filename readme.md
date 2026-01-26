@@ -171,7 +171,7 @@
 ├─ src
 │  ├─ main
 │  │  ├─ java
-│  │  │  └─ com/github/zxs1994/java_template
+│  │  │  └─ com/github/zxs1994/leyue
 │  │  │     ├─ Application.java              # 🚀 应用启动入口
 │  │  │
 │  │  │     ├─ cache/                         # 🔥 权限 / 系统级缓存（SysPermissionCache 等）
@@ -238,7 +238,7 @@
 ### 克隆 & 构建
 ```bash
 git clone <repo-url>
-cd java_template
+cd leyue
 mvn clean package -DskipTests
 ```
 
@@ -249,14 +249,14 @@ mvn clean package -DskipTests
 ```bash
 mvn spring-boot:run
 # 或
-java -jar target/java_template-1.0.0.jar
+java -jar target/leyue-1.0.0.jar
 ```
 
 - 生产环境运行（见 `deploy.sh` 可参考）
 ```bash
-java -jar target/java_template-1.0.0.jar --spring.profiles.active=prod
+java -jar target/leyue-1.0.0.jar --spring.profiles.active=prod
 # JVM内存参数示例
-java -Xms512m -Xmx1g -jar target/java_template-1.0.0.jar --spring.profiles.active=prod
+java -Xms512m -Xmx1g -jar target/leyue-1.0.0.jar --spring.profiles.active=prod
 ```
 
 
