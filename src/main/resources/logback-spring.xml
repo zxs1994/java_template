@@ -49,8 +49,25 @@
 
     <springProfile name="dev">
 
+        <!-- root logger：INFO 级别输出到控制台 -->
+        <root level="INFO">
+            <appender-ref ref="CONSOLE"/>
+        </root>
+
+        <!-- 业务包单独 DEBUG 输出 -->
+        <logger name="${BASE_PACKAGE}" level="DEBUG"/>
+
+        <!-- Spring Web 框架日志输出 INFO 级别 -->
+        <logger name="org.springframework.web" level="INFO"/>
+
+    </springProfile>
+
+    <!-- ================= test 环境 ================= -->
+
+    <springProfile name="test">
+
         <!-- 文件输出，RollingFileAppender 每天切一个新日志 -->
-        <appender name="DEV_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <appender name="TEST_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
             <file>${LOG_PATH}</file>
             <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
                 <!-- 文件名 pattern，每天生成一个新文件 -->
@@ -66,7 +83,7 @@
         <!-- root logger：INFO 级别输出到控制台和文件 -->
         <root level="INFO">
             <appender-ref ref="CONSOLE"/>
-            <appender-ref ref="DEV_FILE"/>
+            <appender-ref ref="TEST_FILE"/>
         </root>
 
         <!-- 业务包单独 DEBUG 输出 -->
